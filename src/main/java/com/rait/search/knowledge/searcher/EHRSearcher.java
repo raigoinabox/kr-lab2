@@ -27,12 +27,11 @@ public class EHRSearcher implements Searcher {
       URL url = new URL(pageUrl + "/" + searchString);
       String pageContent = getPageContentFromCache(url);
       if (pageContent == null) {
-        DesiredCapabilities capabilities = new DesiredCapabilities().phantomjs();
+        DesiredCapabilities capabilities = DesiredCapabilities.phantomjs();
         capabilities.setJavascriptEnabled(true);
-        capabilities.setCapability(
-            PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY,
-            "bin/phantomjs.exe"
-        );
+        if (!System.getProperty("os.name").equalsIgnoreCase("Linux")) {
+          capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY, "bin/phantomjs.exe");
+        }
         String[] phantomArgs = new  String[] {
             "--webdriver-loglevel=NONE"
         };
