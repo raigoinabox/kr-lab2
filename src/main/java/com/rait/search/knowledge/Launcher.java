@@ -7,6 +7,10 @@ import com.rait.search.knowledge.searcher.GoogleSearcher;
 import com.rait.search.knowledge.searcher.KVRealEstateSearcher;
 import com.rait.search.knowledge.searcher.Searcher;
 
+import java.io.IOException;
+
+import java.lang.Runtime;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -34,7 +38,8 @@ public class Launcher {
       searchResult.addAll(kvSearcher.getPages(searchFor));
       searchResult.addAll(ehrSearcher.getPages(searchFor));
 
-      parseSearchResult(searchFor, searchResult);
+      Map<String, Integer> wordWeightMap = parseSearchResult(searchFor, searchResult);
+      printSearchResult(searchFor, wordWeightMap);
 
       if (i < addresses.length - 1) {
         System.out.println("Press enter for more results");
@@ -44,7 +49,7 @@ public class Launcher {
     sc.close();
   }
 
-  private void parseSearchResult(String searchFor, List<Page> searchResult) {
+  private Map<String, Integer> parseSearchResult(String searchFor, List<Page> searchResult) {
     Map<String, Integer> allImportantWordsTogether = new HashMap<>();
     for (Page page : searchResult) {
       try {
@@ -59,15 +64,30 @@ public class Launcher {
           allImportantWordsTogether.put(word, wordRate);
         }
       } catch (Exception e) {
-              e.printStackTrace();
+        e.printStackTrace();
       }
     }
-    printSearchResult(searchFor, Utils.sortMapByValue(allImportantWordsTogether));
+    return Utils.sortMapByValue(allImportantWordsTogether);
   }
 
-  private void printSearchResult(String searchFor, Map<String, Integer> wordWeightMap) {
+  private static void printSearchResult(String searchFor, Map<String, Integer> wordWeightMap) {
     System.out.println(searchFor);
-    System.out.println(wordWeightMap);
-    //System.out.println(Utils.sortMapByValue(allImportantWordsTogether).size());
+    //System.out.println(wordWeightMap);
+
+    int i = 0;
+    for (Map.Entry<String, Integer> entry : wordWeightMap.entrySet()) {
+      if (i == 10) {
+        break;
+      }
+      ++i;
+      System.out.println(entry);
+    }
+
+    try{
+      Process otter = new ProcessBuilder("otter").start();
+      otter.destroy();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
