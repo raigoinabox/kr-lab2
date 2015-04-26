@@ -1,0 +1,75 @@
+% clear automatic strategy selection
+clear(auto).
+
+% use capital letters (A,X,T,...) as vars
+set(prolog_style_variables).
+
+% select the search strategy
+set(hyper_res).
+set(factor).
+set(para_into).
+set(para_from).
+
+% select sensible amount of output
+% clear(print_given). 
+set(print_kept).  % this is important: prints all generated and kept clauses
+assign(stats_level, 0).
+
+% just make it stop after N secs
+assign(max_seconds, 10).
+
+formula_list(sos).
+
+% example data
+
+word("koidu 7","restaurant","0.5").
+word("koidu 7","sale","0.8").
+
+word("vene 9","restaurant","0.7").
+word("vene 9","office","0.6").
+
+MARK_DATA
+
+% example web page types
+
+pagetype("http://www.eestirestoranid.ee/",restaurant).
+pagetype("http://www.eestimaitsed.com",restaurant).
+
+pagetype("http://kv.ee",realestate).
+pagetype("http://city24.ee",realestate).
+
+% different objects: all combos
+
+diff(restaurant,office).
+diff(restaurant,university).
+diff(university,cinema).
+
+% rules
+
+all X Y (diff(X,Y) -> diff(Y,X)).
+
+all X U (word(X,"office",U) -> contains(X,office,$FPROD(U,"0.9"))).
+
+all X U (word(X,"restaurant",U) -> contains(X,restaurant,$FPROD(U,"0.8"))).
+all X U (word(X,"chicken",U) -> contains(X,restaurant,$FPROD(U,"0.3"))).
+
+all X Y ((onwebpage(X,Y) & pagetype(Y,restaurant)) -> 
+     contains(X,restaurant,"0.9")).
+
+all X U (word(X,"sale",U) -> onsale(X,$FPROD(U,"0.8"))).
+all X U (word(X,"euro",U) -> onsale(X,$FPROD(U,"0.3"))).
+all X U (word(X,"real estate",U) -> onsale(X,$FPROD(U,"0.6"))).
+
+all X Y ((onwebpage(X,Y) & pagetype(Y,realestate)) -> 
+      onsale(X,"0.9")).
+      
+%all X Y ((contains(X,restaurant,Y) & contains(X,office,Z) &
+%      $FLT("0.2",Y) & $FLT("0.2",Z)) -> 
+%      multifunctional(X,$FPROD(Y,$FPROD(Z,"0.9"))).
+
+all X Y U W Z ((contains(X,U,Y) & contains(X,W,Z) &
+      diff(U,W) & $FLT("0.2",Y) & $FLT("0.2",Z) ) -> 
+      multifunctional(X,$FPROD(Y,$FPROD(Z,"0.9")))).
+
+
+end_of_list.
